@@ -1,0 +1,3 @@
+/build/*
+/vcxproj/*.user
+/vcxproj/*.vs

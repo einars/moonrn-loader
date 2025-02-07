@@ -1,0 +1,76 @@
+# file opened: src/loader.asm
+ 1    0000                              device zxspectrum48
+ 2    0000
+ 3    0000                              org 0x5ccb
+ 4    5CCB
+ 5    5CCB              basic_start equ $
+ 6    5CCB
+ 7    5CCB              B_RANDOMIZE equ 0f9h
+ 8    5CCB              B_USR equ 0c0h
+ 9    5CCB              B_VAL equ 0b0h
+10    5CCB
+11    5CCB              line10:
+12    5CCB 00 0A                        db 0, 10
+13    5CCD 0B 00                        dw .len
+14    5CCF              .cmds
+15    5CCF F9 C0 B0 22                  db B_RANDOMIZE, B_USR, B_VAL, '"23774":'
+15    5CD3 32 33 37 37
+15    5CD7 34 22 3A
+16    5CDA
+17    5CDA              .len equ $ - .cmds
+18    5CDA
+19    5CDA 00 0F                        db 0, 15 ; line 15, all the code will be stored in this basic line
+20    5CDC 28 03                        dw End - Start
+21    5CDE              Start:
+22    5CDE AF                           xor a
+23    5CDF D3 FE                        out (254), a
+24    5CE1 21 05 60                     ld  hl, Image_end ; reverse unpacking
+25    5CE4 11 00 5B                     ld  de, 0x4000+6912
+26    5CE7 CD EC 5C                     call ue2_unpack
+27    5CEA
+28    5CEA F3                           di
+29    5CEB 76                           halt
+30    5CEC
+31    5CEC              ue2_unpack:
+32    5CEC 06 00                        ld b,0                             ; Ideally, these values should be "reused"
+33    5CEE 3E 80                        ld a,%10000000     ; e.g. by aligning the addresses.
+34    5CF0
+35    5CF0 0E 01        MainLoop        ld c,1
+36    5CF2 CD 0F 5D                     call ReadBit                         ; Literal?
+37    5CF5 38 10                        jr c,CopyBytes
+38    5CF7
+39    5CF7 CD 0F 5D     EliasGamma      call ReadBit
+40    5CFA CB 11                        rl c
+41    5CFC D8                           ret  c                               ; Option to include the end of stream marker.
+42    5CFD CD 0F 5D                     call ReadBit
+43    5D00 38 F5                        jr c,EliasGamma
+44    5D02
+45    5D02 E5                           push hl
+46    5D03 6E                           ld l,(hl)
+47    5D04 60                           ld h,b
+48    5D05 19                           add hl,de
+49    5D06 23                           inc hl
+50    5D07 ED B8        CopyBytes       lddr
+51    5D09 38 E5                        jr c,MainLoop
+52    5D0B E1                           pop hl
+53    5D0C 2B                           dec hl
+54    5D0D 18 E1                        jr MainLoop
+55    5D0F
+56    5D0F 87           ReadBit         add a,a
+57    5D10 C0                           ret nz
+58    5D11 7E                           ld a,(hl)
+59    5D12 2B                           dec hl
+60    5D13 17                           rla
+61    5D14 C9                           ret
+62    5D15
+63    5D15              Image:
+64    5D15                              incbin "build/loading.pck"
+65    6006              Image_end: equ $-1
+66    6006
+67    6006              End equ $
+68    6006
+69    6006                  display "Saving moo.tap"
+70    6006                  emptytap "moo.tap"
+71    6006                  savetap  "moo.tap", basic, "MoonRn", basic_start, End - basic_start, 10
+72    6006
+# file closed: src/loader.asm
