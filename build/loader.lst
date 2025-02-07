@@ -1,5 +1,5 @@
 # file opened: src/loader.asm
- 1    0000                              device zxspectrum48
+ 1    0000                              device zxspectrum128
  2    0000
  3    0000                              org 0x5ccb
  4    5CCB
@@ -9,68 +9,89 @@
  8    5CCB              B_USR equ 0c0h
  9    5CCB              B_VAL equ 0b0h
 10    5CCB
-11    5CCB              line10:
-12    5CCB 00 0A                        db 0, 10
-13    5CCD 0B 00                        dw .len
-14    5CCF              .cmds
-15    5CCF F9 C0 B0 22                  db B_RANDOMIZE, B_USR, B_VAL, '"23774":'
-15    5CD3 32 33 37 37
-15    5CD7 34 22 3A
-16    5CDA
-17    5CDA              .len equ $ - .cmds
-18    5CDA
-19    5CDA 00 0F                        db 0, 15 ; line 15, all the code will be stored in this basic line
-20    5CDC 28 03                        dw End - Start
-21    5CDE              Start:
-22    5CDE AF                           xor a
-23    5CDF D3 FE                        out (254), a
-24    5CE1 21 05 60                     ld  hl, Image_end ; reverse unpacking
-25    5CE4 11 00 5B                     ld  de, 0x4000+6912
-26    5CE7 CD EC 5C                     call ue2_unpack
-27    5CEA
-28    5CEA F3                           di
-29    5CEB 76                           halt
-30    5CEC
-31    5CEC              ue2_unpack:
-32    5CEC 06 00                        ld b,0                             ; Ideally, these values should be "reused"
-33    5CEE 3E 80                        ld a,%10000000     ; e.g. by aligning the addresses.
-34    5CF0
-35    5CF0 0E 01        MainLoop        ld c,1
-36    5CF2 CD 0F 5D                     call ReadBit                         ; Literal?
-37    5CF5 38 10                        jr c,CopyBytes
-38    5CF7
-39    5CF7 CD 0F 5D     EliasGamma      call ReadBit
-40    5CFA CB 11                        rl c
-41    5CFC D8                           ret  c                               ; Option to include the end of stream marker.
-42    5CFD CD 0F 5D                     call ReadBit
-43    5D00 38 F5                        jr c,EliasGamma
-44    5D02
-45    5D02 E5                           push hl
-46    5D03 6E                           ld l,(hl)
-47    5D04 60                           ld h,b
-48    5D05 19                           add hl,de
-49    5D06 23                           inc hl
-50    5D07 ED B8        CopyBytes       lddr
-51    5D09 38 E5                        jr c,MainLoop
-52    5D0B E1                           pop hl
-53    5D0C 2B                           dec hl
-54    5D0D 18 E1                        jr MainLoop
-55    5D0F
-56    5D0F 87           ReadBit         add a,a
-57    5D10 C0                           ret nz
-58    5D11 7E                           ld a,(hl)
-59    5D12 2B                           dec hl
-60    5D13 17                           rla
-61    5D14 C9                           ret
-62    5D15
-63    5D15              Image:
-64    5D15                              incbin "build/loading.pck"
-65    6006              Image_end: equ $-1
-66    6006
-67    6006              End equ $
-68    6006
-69    6006                  display "Saving moo.tap"
-70    6006                  emptytap "moo.tap"
-71    6006                  savetap  "moo.tap", basic, "MoonRn", basic_start, End - basic_start, 10
-72    6006
+11    5CCB
+12    5CCB              target_code_start equ 32768
+13    5CCB              target_code_len equ 22440
+14    5CCB              packed_code_base equ Image ; overwrite packed image and all the shit
+15    5CCB              packed_code_len equ 17730
+16    5CCB
+17    5CCB              line10:
+18    5CCB 00 0A                        db 0, 10
+19    5CCD 0B 00                        dw .len
+20    5CCF              .cmds
+21    5CCF F9 C0 B0 22                  db B_RANDOMIZE, B_USR, B_VAL, '"23774":'
+21    5CD3 32 33 37 37
+21    5CD7 34 22 3A
+22    5CDA
+23    5CDA              .len equ $ - .cmds
+24    5CDA
+25    5CDA 00 0F                        db 0, 15 ; line 15, all the code will be stored in this basic line
+26    5CDC 43 03                        dw End - Start
+27    5CDE              Start:
+28    5CDE 31 FF FF                     ld sp, 65535
+29    5CE1 AF                           xor a
+30    5CE2 FD 77 0E                     ld (iy+14), a
+31    5CE5 D3 FE                        out (254), a
+32    5CE7 21 20 60                     ld  hl, Image_end ; reverse unpacking
+33    5CEA 11 FF 5A                     ld  de, 0x4000+6912 - 1
+34    5CED
+35    5CED CD 07 5D                     call ue2_unpack
+36    5CF0
+37    5CF0 DD 21 30 5D                  ld ix, packed_code_base
+38    5CF4 11 42 45                     ld de, packed_code_len
+39    5CF7 3E FF                        ld a, 255
+40    5CF9 37                           scf
+41    5CFA CD 56 05                     call 0556h
+42    5CFD
+43    5CFD 21 00 80                     ld hl, target_code_start
+44    5D00 E5                           push hl
+45    5D01 11 A7 D7                     ld de, target_code_start + target_code_len - 1
+46    5D04 21 71 A2                     ld hl, packed_code_base + packed_code_len - 1
+47    5D07
+48    5D07
+49    5D07              ue2_unpack:
+50    5D07 06 00                        ld b, 0
+51    5D09 3E 80                        ld a, 128
+52    5D0B
+53    5D0B 0E 01        MainLoop        ld c,1
+54    5D0D CD 2A 5D                     call ReadBit                         ; Literal?
+55    5D10 38 10                        jr c,CopyBytes
+56    5D12
+57    5D12 CD 2A 5D     EliasGamma      call ReadBit
+58    5D15 CB 11                        rl c
+59    5D17 D8                           ret  c                               ; Option to include the end of stream marker.
+60    5D18 CD 2A 5D                     call ReadBit
+61    5D1B 38 F5                        jr c,EliasGamma
+62    5D1D
+63    5D1D E5                           push hl
+64    5D1E 6E                           ld l,(hl)
+65    5D1F 60                           ld h,b
+66    5D20 19                           add hl,de
+67    5D21 23                           inc hl
+68    5D22 ED B8        CopyBytes       lddr
+69    5D24 38 E5                        jr c,MainLoop
+70    5D26 E1                           pop hl
+71    5D27 2B                           dec hl
+72    5D28 18 E1                        jr MainLoop
+73    5D2A
+74    5D2A 87           ReadBit         add a,a
+75    5D2B C0                           ret nz
+76    5D2C 7E                           ld a,(hl)
+77    5D2D 2B                           dec hl
+78    5D2E 17                           rla
+79    5D2F C9                           ret
+80    5D30
+81    5D30              Image:
+82    5D30                              incbin "build/loading.pck"
+83    6021              Image_end: equ $-1
+84    6021
+85    6021              End equ $
+86    6021
+87    6021                  display "Saving moo.tap"
+88    6021                  emptytap "moo.tap"
+89    6021                  savetap  "moo.tap", basic, "MoonRn", basic_start, End - basic_start, 10
+90    6021                  tapout "moo.tap"
+91    6021                  incbin "build/code.pck"
+92    A563                  tapend
+93    A563
 # file closed: src/loader.asm
