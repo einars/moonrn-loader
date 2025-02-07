@@ -1,0 +1,8 @@
+#!/bin/sh
+
+set -o pipefail -o errexit -o nounset
+
+cd "$(dirname "$0")/.."
+
+#fuse --no-traps --no-accelerate-loader --no-fastload moo.tap
+fuse --no-traps --no-accelerate-loader moo.tap
