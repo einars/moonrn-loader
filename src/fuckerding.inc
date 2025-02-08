@@ -129,7 +129,7 @@ ld_edge_1
                 jr spin
 
 do_effect       ; + 16 from above
-
+ 
                 ld b, c         ; 4 ; timing constant
 
                 ; 20 so far
@@ -171,7 +171,7 @@ adj:
                 nop
                 exx  ; exx nop nop exx = 16
 
-                ld a, 0x16 - 1 - 11
+                ld a, 0x16 - 1 - 10
 
 spin:           dec a           ; ~358 T
                 jr nz, spin     ; 1 dec-loop = 16T 
