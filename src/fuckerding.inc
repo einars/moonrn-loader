@@ -60,7 +60,6 @@ ld_sync         ld b, 0xc9
                 xor a
                 out (254), a
 
-                ld h, 0
                 ld b, 0xb0
 
                 jr ld_marker
@@ -92,10 +91,6 @@ rel2+*          call ld_edge_2
                 rl l
                 ld b, 0xb0
                 jp nc, ld_8_bits
-
-                ld a, h
-                xor l
-                ld h, a
 
                 ld a, d
                 or e
