@@ -1,4 +1,4 @@
-effect_delay equ 5
+effect_delay equ 6
 
 load:           
                 exx
@@ -56,13 +56,10 @@ ld_sync         ld b, 0xc9
                 call rom_ld_edge_1
                 ret nc
 
-                ; use normal screen
+                ; use black screen, as the rom routines mangled it
                 xor a
                 out (254), a
 
-                ld a, c
-                xor 3
-                ld c, a
                 ld h, 0
                 ld b, 0xb0
 
@@ -70,17 +67,13 @@ ld_sync         ld b, 0xc9
 
 ld_loop         ex af, af
                 jr nz, ld_flag
+
                 ld (ix), l
                 jr ld_next
 
-ld_flag         rl c
-                xor l
-                ;xor l
-                ;ret nz
-                ld a, c
-                rra
-                ld c, a
-                ;inc de
+ld_flag         
+                ; handle flag without any checking
+                xor a  ; af' = Z, flag checked
                 jr 2f
 
 ld_next
@@ -92,7 +85,7 @@ ld_dec          dec de
                 ld b, 0xb2
 ld_marker       ld l, 1
 ld_8_bits       
-p2_2+*          call ld_edge_2
+rel2+*          call ld_edge_2
                 ret nc
                 ld a, 0xc5
                 cp b
@@ -114,7 +107,7 @@ rom_ld_edge_2 equ 0x5e3
 rom_ld_edge_1 equ 0x5e7
 
 ld_edge_2
-p1_3+*:         call ld_edge_1
+rel1+*:         call ld_edge_1
                 ret nc
 ;breakpoint equ $-load + loader_base
 ld_edge_1       
@@ -123,7 +116,9 @@ ld_edge_1
 
                 dec b           ; 4 
                 jr z, do_effect ;12/7 jump = +16
-                ; 4 + 7 + jr 12 = 23
+
+                ; 4 + 7 + extra jr 12 = 23
+
                 nop
                 nop 
                 ; =31
@@ -134,7 +129,9 @@ ld_edge_1
                 jr spin
 
 do_effect       ; + 16 from above
+
                 ld b, c         ; 4 ; timing constant
+
                 ; 20 so far
 
                 ld e, (hl)      ; 7
@@ -146,6 +143,7 @@ do_effect       ; + 16 from above
                 ex de, hl       ; 4
                 ; 53
 
+
                 ld e, (hl)      ; 7
                 inc hl          ; 6
                 ld d, (hl)      ; 7
@@ -155,7 +153,8 @@ do_effect       ; + 16 from above
                 ex de, hl       ; 4
                 ; 53
 
-                xor a           ; 4
+
+                xor a
                 or d            ; 4
                 ; -- 126
 
@@ -172,7 +171,7 @@ adj:
                 nop
                 exx  ; exx nop nop exx = 16
 
-                ld a, 0x16 - 1 - 10
+                ld a, 0x16 - 1 - 11
 
 spin:           dec a           ; ~358 T
                 jr nz, spin     ; 1 dec-loop = 16T 
@@ -197,6 +196,7 @@ ld_sample       inc b
                 ;and 7 ; 4
                 ;or 8 ; 4
                 ;out (0xfe), a ; 11
+
                 nop
                 nop
                 nop

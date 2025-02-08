@@ -44,17 +44,10 @@ Start:
 loader_base equ 65000
                 ; relocate calls to ld_edge_*
                 ld hl, ld_edge_1 - load + loader_base
-                ;ld hl, rom_ld_edge_1
-                ;ld (p1_0), hl
-                ;ld (p1_1), hl
-                ;ld (p1_2), hl
-                ld (p1_3), hl
+                ld (rel1), hl
 
                 ld hl, ld_edge_2 - load + loader_base
-                ;ld hl, rom_ld_edge_2
-                ;ld (p2_0), hl
-                ;ld (p2_1), hl
-                ld (p2_2), hl
+                ld (rel2), hl
 
                 ld hl, loader_start
                 ld de, loader_base

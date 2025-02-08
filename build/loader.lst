@@ -26,7 +26,7 @@
  25   5CCB
  26   5CCB              line10:
  27   5CCB 00 0A                        db 0, 10
- 28   5CCD F2 04                        dw End - .cmds
+ 28   5CCD EB 04                        dw End - .cmds
  29   5CCF              .cmds
  30   5CCF F9 C0 31 0E                  db B_RANDOMIZE, B_USR, "1", 14, 0, 0
  30   5CD3 00 00
@@ -38,91 +38,84 @@
  36   5CDC AF                           xor a
  37   5CDD FD 77 0E                     ld (iy+14), a
  38   5CE0 D3 FE                        out (254), a
- 39   5CE2 21 C0 61                     ld  hl, Image_end ; reverse unpacking
+ 39   5CE2 21 B9 61                     ld  hl, Image_end ; reverse unpacking
  40   5CE5 11 FF 5A                     ld  de, 0x4000+6912 - 1
  41   5CE8
  42   5CE8 CD 19 5D                     call ue2_unpack
  43   5CEB
  44   5CEB              loader_base equ 65000
  45   5CEB                              ; relocate calls to ld_edge_*
- 46   5CEB 21 71 FE                     ld hl, ld_edge_1 - load + loader_base
- 47   5CEE                              ;ld hl, rom_ld_edge_1
- 48   5CEE                              ;ld (p1_0), hl
- 49   5CEE                              ;ld (p1_1), hl
- 50   5CEE                              ;ld (p1_2), hl
- 51   5CEE 22 C7 5D                     ld (p1_3), hl
- 52   5CF1
- 53   5CF1 21 6D FE                     ld hl, ld_edge_2 - load + loader_base
- 54   5CF4                              ;ld hl, rom_ld_edge_2
- 55   5CF4                              ;ld (p2_0), hl
- 56   5CF4                              ;ld (p2_1), hl
- 57   5CF4 22 B1 5D                     ld (p2_2), hl
- 58   5CF7
- 59   5CF7 21 41 5D                     ld hl, loader_start
- 60   5CFA 11 E8 FD                     ld de, loader_base
- 61   5CFD 01 8F 01                     ld bc, loader_end - loader_start
- 62   5D00 ED B0                        ldir
- 63   5D02
- 64   5D02
- 65   5D02                              ; di
- 66   5D02                              ; halt
- 67   5D02
- 68   5D02
- 69   5D02 DD 21 D0 5E                  ld ix, packed_code_start
- 70   5D06 11 42 45                     ld de, 17730
- 71   5D09 3E FF                        ld a, 255
- 72   5D0B 37                           scf
- 73   5D0C
- 74   5D0C                              ;call 0556h
- 75   5D0C CD E8 FD                     call loader_base
- 76   5D0F
- 77   5D0F 21 00 80                     ld hl, target_code_start
- 78   5D12 E5                           push hl
- 79   5D13 11 A7 D7                     ld de, target_code_start + 22440 - 1
- 80   5D16 21 11 A4                     ld hl, packed_code_start + 17730 - 1
- 81   5D19
- 82   5D19
- 83   5D19              ue2_unpack:
- 84   5D19 3E 80                        ld a, 128
- 85   5D1B
- 86   5D1B 01 01 00     MainLoop        ld bc,1
- 87   5D1E CD 3B 5D                     call ReadBit                         ; Literal?
- 88   5D21 38 10                        jr c,CopyBytes
- 89   5D23
- 90   5D23 CD 3B 5D     EliasGamma      call ReadBit
- 91   5D26 CB 11                        rl c
- 92   5D28 D8                           ret  c                               ; Option to include the end of stream marker.
- 93   5D29 CD 3B 5D                     call ReadBit
- 94   5D2C 38 F5                        jr c,EliasGamma
- 95   5D2E
- 96   5D2E E5                           push hl
- 97   5D2F 6E                           ld l,(hl)
- 98   5D30 60                           ld h,b
- 99   5D31 19                           add hl,de
-100   5D32 23                           inc hl
-101   5D33 ED B8        CopyBytes       lddr
-102   5D35 38 E4                        jr c,MainLoop
-103   5D37 E1                           pop hl
-104   5D38 2B                           dec hl
-105   5D39 18 E0                        jr MainLoop
-106   5D3B
-107   5D3B 87           ReadBit         add a,a
-108   5D3C C0                           ret nz
-109   5D3D 7E                           ld a,(hl)
-110   5D3E 2B                           dec hl
-111   5D3F 17                           rla
-112   5D40 C9                           ret
-113   5D41
-114   5D41              loader_start:
-115   5D41                              include "src/fuckerding.inc"
+ 46   5CEB 21 68 FE                     ld hl, ld_edge_1 - load + loader_base
+ 47   5CEE 22 BE 5D                     ld (rel1), hl
+ 48   5CF1
+ 49   5CF1 21 64 FE                     ld hl, ld_edge_2 - load + loader_base
+ 50   5CF4 22 A8 5D                     ld (rel2), hl
+ 51   5CF7
+ 52   5CF7 21 41 5D                     ld hl, loader_start
+ 53   5CFA 11 E8 FD                     ld de, loader_base
+ 54   5CFD 01 88 01                     ld bc, loader_end - loader_start
+ 55   5D00 ED B0                        ldir
+ 56   5D02
+ 57   5D02
+ 58   5D02                              ; di
+ 59   5D02                              ; halt
+ 60   5D02
+ 61   5D02
+ 62   5D02 DD 21 C9 5E                  ld ix, packed_code_start
+ 63   5D06 11 42 45                     ld de, 17730
+ 64   5D09 3E FF                        ld a, 255
+ 65   5D0B 37                           scf
+ 66   5D0C
+ 67   5D0C                              ;call 0556h
+ 68   5D0C CD E8 FD                     call loader_base
+ 69   5D0F
+ 70   5D0F 21 00 80                     ld hl, target_code_start
+ 71   5D12 E5                           push hl
+ 72   5D13 11 A7 D7                     ld de, target_code_start + 22440 - 1
+ 73   5D16 21 0A A4                     ld hl, packed_code_start + 17730 - 1
+ 74   5D19
+ 75   5D19
+ 76   5D19              ue2_unpack:
+ 77   5D19 3E 80                        ld a, 128
+ 78   5D1B
+ 79   5D1B 01 01 00     MainLoop        ld bc,1
+ 80   5D1E CD 3B 5D                     call ReadBit                         ; Literal?
+ 81   5D21 38 10                        jr c,CopyBytes
+ 82   5D23
+ 83   5D23 CD 3B 5D     EliasGamma      call ReadBit
+ 84   5D26 CB 11                        rl c
+ 85   5D28 D8                           ret  c                               ; Option to include the end of stream marker.
+ 86   5D29 CD 3B 5D                     call ReadBit
+ 87   5D2C 38 F5                        jr c,EliasGamma
+ 88   5D2E
+ 89   5D2E E5                           push hl
+ 90   5D2F 6E                           ld l,(hl)
+ 91   5D30 60                           ld h,b
+ 92   5D31 19                           add hl,de
+ 93   5D32 23                           inc hl
+ 94   5D33 ED B8        CopyBytes       lddr
+ 95   5D35 38 E4                        jr c,MainLoop
+ 96   5D37 E1                           pop hl
+ 97   5D38 2B                           dec hl
+ 98   5D39 18 E0                        jr MainLoop
+ 99   5D3B
+100   5D3B 87           ReadBit         add a,a
+101   5D3C C0                           ret nz
+102   5D3D 7E                           ld a,(hl)
+103   5D3E 2B                           dec hl
+104   5D3F 17                           rla
+105   5D40 C9                           ret
+106   5D41
+107   5D41              loader_start:
+108   5D41                              include "src/fuckerding.inc"
 # file opened: ./src/fuckerding.inc
-  1+  5D41              effect_delay equ 5
+  1+  5D41              effect_delay equ 6
   2+  5D41
   3+  5D41              load:
   4+  5D41 D9                           exx
-  5+  5D42 21 BB FE                     ld hl, lines_reloc
-  6+  5D45 06 05                        ld b, effect_delay
-  7+  5D47 0E 05                        ld c, effect_delay
+  5+  5D42 21 B4 FE                     ld hl, lines_reloc
+  6+  5D45 06 06                        ld b, effect_delay
+  7+  5D47 0E 06                        ld c, effect_delay
   8+  5D49 D9                           exx
   9+  5D4A
  10+  5D4A 14                           inc d
@@ -174,240 +167,242 @@
  56+  5D87 CD E7 05                     call rom_ld_edge_1
  57+  5D8A D0                           ret nc
  58+  5D8B
- 59+  5D8B                              ; use normal screen
+ 59+  5D8B                              ; use black screen, as the rom routines mangled it
  60+  5D8B AF                           xor a
  61+  5D8C D3 FE                        out (254), a
  62+  5D8E
- 63+  5D8E 79                           ld a, c
- 64+  5D8F EE 03                        xor 3
- 65+  5D91 4F                           ld c, a
- 66+  5D92 26 00                        ld h, 0
- 67+  5D94 06 B0                        ld b, 0xb0
- 68+  5D96
- 69+  5D96 18 16                        jr ld_marker
- 70+  5D98
- 71+  5D98 08           ld_loop         ex af, af
- 72+  5D99 20 05                        jr nz, ld_flag
- 73+  5D9B DD 75 00                     ld (ix), l
- 74+  5D9E 18 08                        jr ld_next
- 75+  5DA0
- 76+  5DA0 CB 11        ld_flag         rl c
- 77+  5DA2 AD                           xor l
- 78+  5DA3                              ;xor l
- 79+  5DA3                              ;ret nz
- 80+  5DA3 79                           ld a, c
- 81+  5DA4 1F                           rra
- 82+  5DA5 4F                           ld c, a
- 83+  5DA6                              ;inc de
- 84+  5DA6 18 03                        jr 2f
- 85+  5DA8
- 86+  5DA8              ld_next
- 87+  5DA8 DD 23                        inc ix
- 88+  5DAA 1B           ld_dec          dec de
- 89+  5DAB              2
- 90+  5DAB 08                           ex af, af
- 91+  5DAC
- 92+  5DAC 06 B2                        ld b, 0xb2
- 93+  5DAE 2E 01        ld_marker       ld l, 1
- 94+  5DB0              ld_8_bits
- 95+  5DB0 CD C6 5D     p2_2+*          call ld_edge_2
- 96+  5DB3 D0                           ret nc
- 97+  5DB4 3E C5                        ld a, 0xc5
- 98+  5DB6 B8                           cp b
- 99+  5DB7 CB 15                        rl l
-100+  5DB9 06 B0                        ld b, 0xb0
-101+  5DBB D2 B0 5D                     jp nc, ld_8_bits
-102+  5DBE
-103+  5DBE 7C                           ld a, h
-104+  5DBF AD                           xor l
-105+  5DC0 67                           ld h, a
-106+  5DC1
-107+  5DC1 7A                           ld a, d
-108+  5DC2 B3                           or e
-109+  5DC3 20 D3                        jr nz, ld_loop
-110+  5DC5
-111+  5DC5 C9                           ret
-112+  5DC6
-113+  5DC6              rom_ld_edge_2 equ 0x5e3
-114+  5DC6              rom_ld_edge_1 equ 0x5e7
-115+  5DC6
-116+  5DC6              ld_edge_2
-117+  5DC6 CD CA 5D     p1_3+*:         call ld_edge_1
-118+  5DC9 D0                           ret nc
-119+  5DCA              ;breakpoint equ $-load + loader_base
-120+  5DCA              ld_edge_1
-121+  5DCA D9                           exx
-122+  5DCB 00                           nop
-123+  5DCC
-124+  5DCC 05                           dec b           ; 4
-125+  5DCD 28 08                        jr z, do_effect ;12/7 jump = +16
-126+  5DCF                              ; 4 + 7 + jr 12 = 23
-127+  5DCF 00                           nop
-128+  5DD0 00                           nop
-129+  5DD1                              ; =31
-130+  5DD1
-131+  5DD1 00                           nop
-132+  5DD2 D9                           exx  ; exx nop nop exx = 16
-133+  5DD3 3E 13                        ld a, 0x16 - 1 - 2
-134+  5DD5 18 22                        jr spin
-135+  5DD7
-136+  5DD7              do_effect       ; + 16 from above
-137+  5DD7 41                           ld b, c         ; 4 ; timing constant
-138+  5DD8                              ; 20 so far
-139+  5DD8
-140+  5DD8 5E                           ld e, (hl)      ; 7
-141+  5DD9 23                           inc hl          ; 6
-142+  5DDA 56                           ld d, (hl)      ; 7
-143+  5DDB 23                           inc hl          ; 6
-144+  5DDC EB                           ex de, hl       ; 4
-145+  5DDD CB 06                        rlc (hl)         ; 15 ; contended memory thou
-146+  5DDF EB                           ex de, hl       ; 4
-147+  5DE0                              ; 53
-148+  5DE0
-149+  5DE0 5E                           ld e, (hl)      ; 7
-150+  5DE1 23                           inc hl          ; 6
-151+  5DE2 56                           ld d, (hl)      ; 7
-152+  5DE3 23                           inc hl          ; 6
-153+  5DE4 EB                           ex de, hl       ; 4
-154+  5DE5 CB 0E                        rrc (hl)         ; 15 ; contended memory thou
-155+  5DE7 EB                           ex de, hl       ; 4
-156+  5DE8                              ; 53
-157+  5DE8
-158+  5DE8 AF                           xor a           ; 4
-159+  5DE9 B2                           or d            ; 4
-160+  5DEA                              ; -- 126
-161+  5DEA
-162+  5DEA                              ; adjusted: 12+7+10 = 29 either way
-163+  5DEA 20 03                        jr nz, ok    ; 12/7
-164+  5DEC 21 BB FE                     ld hl, lines_reloc ; 10
-165+  5DEF 28 03        ok:             jr z, adj    ; 12/7 symmetric branch timing adjustment
-166+  5DF1 11 BB FE                     ld de, lines_reloc ; 10
-167+  5DF4              adj:
-168+  5DF4                              ; -- + 29 = 155
-169+  5DF4 00                           nop
-170+  5DF5                              ; 159, ~16*10
-171+  5DF5
-172+  5DF5 00                           nop
-173+  5DF6 D9                           exx  ; exx nop nop exx = 16
-174+  5DF7
-175+  5DF7 3E 0B                        ld a, 0x16 - 1 - 10
-176+  5DF9
-177+  5DF9 3D           spin:           dec a           ; ~358 T
-178+  5DFA 20 FD                        jr nz, spin     ; 1 dec-loop = 16T
-179+  5DFC A7                           and a
-180+  5DFD
-181+  5DFD 04           ld_sample       inc b
-182+  5DFE C8                           ret z
-183+  5DFF
-184+  5DFF 3E 7F                        ld a, 0x7f
-185+  5E01 DB FE                        in a, (0xfe)
-186+  5E03 1F                           rra
-187+  5E04 D0                           ret nc
-188+  5E05
-189+  5E05 A9                           xor c
-190+  5E06 E6 20                        and 0x20
-191+  5E08 28 F3                        jr z, ld_sample
-192+  5E0A
-193+  5E0A 79                           ld a, c
-194+  5E0B 2F                           cpl
-195+  5E0C 4F                           ld c, a
-196+  5E0D
-197+  5E0D                              ;and 7 ; 4
-198+  5E0D                              ;or 8 ; 4
-199+  5E0D                              ;out (0xfe), a ; 11
-200+  5E0D 00                           nop
-201+  5E0E 00                           nop
-202+  5E0F 00                           nop
-203+  5E10 00                           nop
-204+  5E11 00                           nop
-205+  5E12
-206+  5E12 37                           scf
-207+  5E13 C9                           ret
-208+  5E14
-209+  5E14              lines_reloc equ $ - load + loader_base
-210+  5E14              lines:
-211+  5E14                              lua allpass
-212+  5E14 ~                            local line1 = 0x49e0
-213+  5E14 ~                            local line2 = line1 + 512
-214+  5E14 ~                            local line3 = line2 + 512
-215+  5E14 ~
-216+  5E14 ~                            sj.add_word(line2 + 16)
-217+  5E14 ~                            sj.add_word(line3 + 16)
-218+  5E14 ~
-219+  5E14 ~                            for i = 1, 15, 1
-220+  5E14 ~                            do
-221+  5E14 ~                              sj.add_word(line1 + 16 - i)
-222+  5E14 ~                              sj.add_word(line1 + 16 + i)
-223+  5E14 ~                              sj.add_word(line2 + 16 - i)
-224+  5E14 ~                              sj.add_word(line2 + 16 + i)
-225+  5E14 ~                              sj.add_word(line3 + 16 - i)
-226+  5E14 ~                              sj.add_word(line3 + 16 + i)
-227+  5E14 ~                            end
-228+  5E14 F0 4B F0 4D                  endlua
-228+  5E18 EF 49 F1 49
-228+  5E1C EF 4B F1 4B
-228+  5E20 EF 4D F1 4D
-228+  5E24 EE 49 F2 49
-228+  5E28 EE 4B F2 4B
-228+  5E2C EE 4D F2 4D
-228+  5E30 ED 49 F3 49
-228+  5E34 ED 4B F3 4B
-228+  5E38 ED 4D F3 4D
-228+  5E3C EC 49 F4 49
-228+  5E40 EC 4B F4 4B
-228+  5E44 EC 4D F4 4D
-228+  5E48 EB 49 F5 49
-228+  5E4C EB 4B F5 4B
-228+  5E50 EB 4D F5 4D
-228+  5E54 EA 49 F6 49
-228+  5E58 EA 4B F6 4B
-228+  5E5C EA 4D F6 4D
-228+  5E60 E9 49 F7 49
-228+  5E64 E9 4B F7 4B
-228+  5E68 E9 4D F7 4D
-228+  5E6C E8 49 F8 49
-228+  5E70 E8 4B F8 4B
-228+  5E74 E8 4D F8 4D
-228+  5E78 E7 49 F9 49
-228+  5E7C E7 4B F9 4B
-228+  5E80 E7 4D F9 4D
-228+  5E84 E6 49 FA 49
-228+  5E88 E6 4B FA 4B
-228+  5E8C E6 4D FA 4D
-228+  5E90 E5 49 FB 49
-228+  5E94 E5 4B FB 4B
-228+  5E98 E5 4D FB 4D
-228+  5E9C E4 49 FC 49
-228+  5EA0 E4 4B FC 4B
-228+  5EA4 E4 4D FC 4D
-228+  5EA8 E3 49 FD 49
-228+  5EAC E3 4B FD 4B
-228+  5EB0 E3 4D FD 4D
-228+  5EB4 E2 49 FE 49
-228+  5EB8 E2 4B FE 4B
-228+  5EBC E2 4D FE 4D
-228+  5EC0 E1 49 FF 49
-228+  5EC4 E1 4B FF 4B
-228+  5EC8 E1 4D FF 4D
-229+  5ECC 00 00                        dw 0
-230+  5ECE 00 00                        dw 0
-231+  5ED0
-232+  5ED0
-233+  5ED0
+ 63+  5D8E 26 00                        ld h, 0
+ 64+  5D90 06 B0                        ld b, 0xb0
+ 65+  5D92
+ 66+  5D92 18 11                        jr ld_marker
+ 67+  5D94
+ 68+  5D94 08           ld_loop         ex af, af
+ 69+  5D95 20 05                        jr nz, ld_flag
+ 70+  5D97
+ 71+  5D97 DD 75 00                     ld (ix), l
+ 72+  5D9A 18 03                        jr ld_next
+ 73+  5D9C
+ 74+  5D9C              ld_flag
+ 75+  5D9C                              ; handle flag without any checking
+ 76+  5D9C AF                           xor a  ; af' = Z, flag checked
+ 77+  5D9D 18 03                        jr 2f
+ 78+  5D9F
+ 79+  5D9F              ld_next
+ 80+  5D9F DD 23                        inc ix
+ 81+  5DA1 1B           ld_dec          dec de
+ 82+  5DA2              2
+ 83+  5DA2 08                           ex af, af
+ 84+  5DA3
+ 85+  5DA3 06 B2                        ld b, 0xb2
+ 86+  5DA5 2E 01        ld_marker       ld l, 1
+ 87+  5DA7              ld_8_bits
+ 88+  5DA7 CD BD 5D     rel2+*          call ld_edge_2
+ 89+  5DAA D0                           ret nc
+ 90+  5DAB 3E C5                        ld a, 0xc5
+ 91+  5DAD B8                           cp b
+ 92+  5DAE CB 15                        rl l
+ 93+  5DB0 06 B0                        ld b, 0xb0
+ 94+  5DB2 D2 A7 5D                     jp nc, ld_8_bits
+ 95+  5DB5
+ 96+  5DB5 7C                           ld a, h
+ 97+  5DB6 AD                           xor l
+ 98+  5DB7 67                           ld h, a
+ 99+  5DB8
+100+  5DB8 7A                           ld a, d
+101+  5DB9 B3                           or e
+102+  5DBA 20 D8                        jr nz, ld_loop
+103+  5DBC
+104+  5DBC C9                           ret
+105+  5DBD
+106+  5DBD              rom_ld_edge_2 equ 0x5e3
+107+  5DBD              rom_ld_edge_1 equ 0x5e7
+108+  5DBD
+109+  5DBD              ld_edge_2
+110+  5DBD CD C1 5D     rel1+*:         call ld_edge_1
+111+  5DC0 D0                           ret nc
+112+  5DC1              ;breakpoint equ $-load + loader_base
+113+  5DC1              ld_edge_1
+114+  5DC1 D9                           exx
+115+  5DC2 00                           nop
+116+  5DC3
+117+  5DC3 05                           dec b           ; 4
+118+  5DC4 28 08                        jr z, do_effect ;12/7 jump = +16
+119+  5DC6
+120+  5DC6                              ; 4 + 7 + extra jr 12 = 23
+121+  5DC6
+122+  5DC6 00                           nop
+123+  5DC7 00                           nop
+124+  5DC8                              ; =31
+125+  5DC8
+126+  5DC8 00                           nop
+127+  5DC9 D9                           exx  ; exx nop nop exx = 16
+128+  5DCA 3E 13                        ld a, 0x16 - 1 - 2
+129+  5DCC 18 24                        jr spin
+130+  5DCE
+131+  5DCE              do_effect       ; + 16 from above
+132+  5DCE 3E 01                        ld a, 1 ;  7
+133+  5DD0                              ;out (0xfe), a ; ; 11
+134+  5DD0
+135+  5DD0 41                           ld b, c         ; 4 ; timing constant
+136+  5DD1
+137+  5DD1                              ; 20 so far
+138+  5DD1
+139+  5DD1 5E                           ld e, (hl)      ; 7
+140+  5DD2 23                           inc hl          ; 6
+141+  5DD3 56                           ld d, (hl)      ; 7
+142+  5DD4 23                           inc hl          ; 6
+143+  5DD5 EB                           ex de, hl       ; 4
+144+  5DD6 CB 06                        rlc (hl)         ; 15 ; contended memory thou
+145+  5DD8 EB                           ex de, hl       ; 4
+146+  5DD9                              ; 53
+147+  5DD9
+148+  5DD9
+149+  5DD9 5E                           ld e, (hl)      ; 7
+150+  5DDA 23                           inc hl          ; 6
+151+  5DDB 56                           ld d, (hl)      ; 7
+152+  5DDC 23                           inc hl          ; 6
+153+  5DDD EB                           ex de, hl       ; 4
+154+  5DDE CB 0E                        rrc (hl)         ; 15 ; contended memory thou
+155+  5DE0 EB                           ex de, hl       ; 4
+156+  5DE1                              ; 53
+157+  5DE1
+158+  5DE1
+159+  5DE1 AF                           xor a
+160+  5DE2 B2                           or d            ; 4
+161+  5DE3                              ; -- 126
+162+  5DE3
+163+  5DE3                              ; adjusted: 12+7+10 = 29 either way
+164+  5DE3 20 03                        jr nz, ok    ; 12/7
+165+  5DE5 21 B4 FE                     ld hl, lines_reloc ; 10
+166+  5DE8 28 03        ok:             jr z, adj    ; 12/7 symmetric branch timing adjustment
+167+  5DEA 11 B4 FE                     ld de, lines_reloc ; 10
+168+  5DED              adj:
+169+  5DED                              ; -- + 29 = 155
+170+  5DED 00                           nop
+171+  5DEE                              ; 159, ~16*10
+172+  5DEE
+173+  5DEE 00                           nop
+174+  5DEF D9                           exx  ; exx nop nop exx = 16
+175+  5DF0
+176+  5DF0 3E 0A                        ld a, 0x16 - 1 - 11
+177+  5DF2
+178+  5DF2 3D           spin:           dec a           ; ~358 T
+179+  5DF3 20 FD                        jr nz, spin     ; 1 dec-loop = 16T
+180+  5DF5 A7                           and a
+181+  5DF6
+182+  5DF6 04           ld_sample       inc b
+183+  5DF7 C8                           ret z
+184+  5DF8
+185+  5DF8 3E 7F                        ld a, 0x7f
+186+  5DFA DB FE                        in a, (0xfe)
+187+  5DFC 1F                           rra
+188+  5DFD D0                           ret nc
+189+  5DFE
+190+  5DFE A9                           xor c
+191+  5DFF E6 20                        and 0x20
+192+  5E01 28 F3                        jr z, ld_sample
+193+  5E03
+194+  5E03 79                           ld a, c
+195+  5E04 2F                           cpl
+196+  5E05 4F                           ld c, a
+197+  5E06
+198+  5E06                              ;and 7 ; 4
+199+  5E06                              ;or 8 ; 4
+200+  5E06                              ;out (0xfe), a ; 11
+201+  5E06
+202+  5E06 00                           nop
+203+  5E07 00                           nop
+204+  5E08 00                           nop
+205+  5E09 00                           nop
+206+  5E0A 00                           nop
+207+  5E0B
+208+  5E0B 37                           scf
+209+  5E0C C9                           ret
+210+  5E0D
+211+  5E0D              lines_reloc equ $ - load + loader_base
+212+  5E0D              lines:
+213+  5E0D                              lua allpass
+214+  5E0D ~                            local line1 = 0x49e0
+215+  5E0D ~                            local line2 = line1 + 512
+216+  5E0D ~                            local line3 = line2 + 512
+217+  5E0D ~
+218+  5E0D ~                            sj.add_word(line2 + 16)
+219+  5E0D ~                            sj.add_word(line3 + 16)
+220+  5E0D ~
+221+  5E0D ~                            for i = 1, 15, 1
+222+  5E0D ~                            do
+223+  5E0D ~                              sj.add_word(line1 + 16 - i)
+224+  5E0D ~                              sj.add_word(line1 + 16 + i)
+225+  5E0D ~                              sj.add_word(line2 + 16 - i)
+226+  5E0D ~                              sj.add_word(line2 + 16 + i)
+227+  5E0D ~                              sj.add_word(line3 + 16 - i)
+228+  5E0D ~                              sj.add_word(line3 + 16 + i)
+229+  5E0D ~                            end
+230+  5E0D F0 4B F0 4D                  endlua
+230+  5E11 EF 49 F1 49
+230+  5E15 EF 4B F1 4B
+230+  5E19 EF 4D F1 4D
+230+  5E1D EE 49 F2 49
+230+  5E21 EE 4B F2 4B
+230+  5E25 EE 4D F2 4D
+230+  5E29 ED 49 F3 49
+230+  5E2D ED 4B F3 4B
+230+  5E31 ED 4D F3 4D
+230+  5E35 EC 49 F4 49
+230+  5E39 EC 4B F4 4B
+230+  5E3D EC 4D F4 4D
+230+  5E41 EB 49 F5 49
+230+  5E45 EB 4B F5 4B
+230+  5E49 EB 4D F5 4D
+230+  5E4D EA 49 F6 49
+230+  5E51 EA 4B F6 4B
+230+  5E55 EA 4D F6 4D
+230+  5E59 E9 49 F7 49
+230+  5E5D E9 4B F7 4B
+230+  5E61 E9 4D F7 4D
+230+  5E65 E8 49 F8 49
+230+  5E69 E8 4B F8 4B
+230+  5E6D E8 4D F8 4D
+230+  5E71 E7 49 F9 49
+230+  5E75 E7 4B F9 4B
+230+  5E79 E7 4D F9 4D
+230+  5E7D E6 49 FA 49
+230+  5E81 E6 4B FA 4B
+230+  5E85 E6 4D FA 4D
+230+  5E89 E5 49 FB 49
+230+  5E8D E5 4B FB 4B
+230+  5E91 E5 4D FB 4D
+230+  5E95 E4 49 FC 49
+230+  5E99 E4 4B FC 4B
+230+  5E9D E4 4D FC 4D
+230+  5EA1 E3 49 FD 49
+230+  5EA5 E3 4B FD 4B
+230+  5EA9 E3 4D FD 4D
+230+  5EAD E2 49 FE 49
+230+  5EB1 E2 4B FE 4B
+230+  5EB5 E2 4D FE 4D
+230+  5EB9 E1 49 FF 49
+230+  5EBD E1 4B FF 4B
+230+  5EC1 E1 4D FF 4D
+231+  5EC5 00 00                        dw 0
+232+  5EC7 00 00                        dw 0
+233+  5EC9
+234+  5EC9
+235+  5EC9
 # file closed: ./src/fuckerding.inc
-116   5ED0              loader_end equ $
-117   5ED0
-118   5ED0              packed_code_start:
-119   5ED0                              incbin "build/loading.pck"
-120   61C1              Image_end equ $-1
-121   61C1
-122   61C1              End equ $
-123   61C1
-124   61C1                  display "Saving moo.tap"
-125   61C1                  emptytap "moo.tap"
-126   61C1                  savetap  "moo.tap", basic, "MoonRn", basic_start, End - basic_start, 10
-127   61C1                  tapout "moo.tap"
-128   61C1                  incbin "build/code.pck"
-129   A703                  tapend
-130   A703
+109   5EC9              loader_end equ $
+110   5EC9
+111   5EC9              packed_code_start:
+112   5EC9                              incbin "build/loading.pck"
+113   61BA              Image_end equ $-1
+114   61BA
+115   61BA              End equ $
+116   61BA
+117   61BA                  display "Saving moo.tap"
+118   61BA                  emptytap "moo.tap"
+119   61BA                  savetap  "moo.tap", basic, "MoonRn", basic_start, End - basic_start, 10
+120   61BA                  tapout "moo.tap"
+121   61BA                  incbin "build/code.pck"
+122   A6FC                  tapend
+123   A6FC
 # file closed: src/loader.asm
