@@ -1,102 +1,269 @@
 # file opened: src/loader.asm
- 1    0000                              device zxspectrum128
- 2    0000
- 3    0000                              org 0x5ccb
- 4    5CCB
- 5    5CCB              basic_start equ $
- 6    5CCB
- 7    5CCB              B_RANDOMIZE equ 0f9h
- 8    5CCB              B_USR equ 0c0h
- 9    5CCB
-10    5CCB
-11    5CCB              target_code_start equ 32768
-12    5CCB
-13    5CCB                              lua
-14    5CCB ~                            local f
-15    5CCB ~
-16    5CCB ~                            f = io.open("./pristine/moonrn.bin")
-17    5CCB ~                            sj.insert_define("target_code_len", f:seek("end"))
-18    5CCB ~                            f:close()
-19    5CCB ~
-20    5CCB ~                            f = io.open("./build/code.pck")
-21    5CCB ~                            sj.insert_define("packed_code_len", f:seek("end"))
-22    5CCB ~                            f:close()
-23    5CCB ~
-24    5CCB                              endlua
-25    5CCB
-26    5CCB              line10:
-27    5CCB 00 0A                        db 0, 10
-28    5CCD 4C 03                        dw End - .cmds
-29    5CCF              .cmds
-30    5CCF F9 C0 31 0E                  db B_RANDOMIZE, B_USR, "1", 14, 0, 0
-30    5CD3 00 00
-31    5CD5 D9 5C                        dw Start
-32    5CD7 00 3A                        db 0, ':'
-33    5CD9
-34    5CD9              Start:
-35    5CD9 31 FF FF                     ld sp, 65535
-36    5CDC AF                           xor a
-37    5CDD FD 77 0E                     ld (iy+14), a
-38    5CE0 D3 FE                        out (254), a
-39    5CE2 21 1A 60                     ld  hl, Image_end ; reverse unpacking
-40    5CE5 11 FF 5A                     ld  de, 0x4000+6912 - 1
-41    5CE8
-42    5CE8 CD 02 5D                     call ue2_unpack
-43    5CEB
-44    5CEB DD 21 2A 5D                  ld ix, packed_code_start
-45    5CEF 11 42 45                     ld de, 17730
-46    5CF2 3E FF                        ld a, 255
-47    5CF4 37                           scf
-48    5CF5 CD 56 05                     call 0556h
-49    5CF8
-50    5CF8 21 00 80                     ld hl, target_code_start
-51    5CFB E5                           push hl
-52    5CFC 11 A7 D7                     ld de, target_code_start + 22440 - 1
-53    5CFF 21 6B A2                     ld hl, packed_code_start + 17730 - 1
-54    5D02
-55    5D02
-56    5D02              ue2_unpack:
-57    5D02 3E 80                        ld a, 128
-58    5D04
-59    5D04 01 01 00     MainLoop        ld bc,1
-60    5D07 CD 24 5D                     call ReadBit                         ; Literal?
-61    5D0A 38 10                        jr c,CopyBytes
-62    5D0C
-63    5D0C CD 24 5D     EliasGamma      call ReadBit
-64    5D0F CB 11                        rl c
-65    5D11 D8                           ret  c                               ; Option to include the end of stream marker.
-66    5D12 CD 24 5D                     call ReadBit
-67    5D15 38 F5                        jr c,EliasGamma
-68    5D17
-69    5D17 E5                           push hl
-70    5D18 6E                           ld l,(hl)
-71    5D19 60                           ld h,b
-72    5D1A 19                           add hl,de
-73    5D1B 23                           inc hl
-74    5D1C ED B8        CopyBytes       lddr
-75    5D1E 38 E4                        jr c,MainLoop
-76    5D20 E1                           pop hl
-77    5D21 2B                           dec hl
-78    5D22 18 E0                        jr MainLoop
-79    5D24
-80    5D24 87           ReadBit         add a,a
-81    5D25 C0                           ret nz
-82    5D26 7E                           ld a,(hl)
-83    5D27 2B                           dec hl
-84    5D28 17                           rla
-85    5D29 C9                           ret
-86    5D2A
-87    5D2A              packed_code_start:
-88    5D2A                              incbin "build/loading.pck"
-89    601B              Image_end: equ $-1
-90    601B
-91    601B              End equ $
-92    601B
-93    601B                  display "Saving moo.tap"
-94    601B                  emptytap "moo.tap"
-95    601B                  savetap  "moo.tap", basic, "MoonRn", basic_start, End - basic_start, 10
-96    601B                  tapout "moo.tap"
-97    601B                  incbin "build/code.pck"
-98    A55D                  tapend
-99    A55D
+  1   0000                              device zxspectrum128
+  2   0000
+  3   0000                              org 0x5ccb
+  4   5CCB
+  5   5CCB              basic_start equ $
+  6   5CCB
+  7   5CCB              B_RANDOMIZE equ 0f9h
+  8   5CCB              B_USR equ 0c0h
+  9   5CCB
+ 10   5CCB
+ 11   5CCB              target_code_start equ 32768
+ 12   5CCB
+ 13   5CCB                              lua
+ 14   5CCB ~                            local f
+ 15   5CCB ~
+ 16   5CCB ~                            f = io.open("./pristine/moonrn.bin")
+ 17   5CCB ~                            sj.insert_define("target_code_len", f:seek("end"))
+ 18   5CCB ~                            f:close()
+ 19   5CCB ~
+ 20   5CCB ~                            f = io.open("./build/code.pck")
+ 21   5CCB ~                            sj.insert_define("packed_code_len", f:seek("end"))
+ 22   5CCB ~                            f:close()
+ 23   5CCB ~
+ 24   5CCB                              endlua
+ 25   5CCB
+ 26   5CCB              line10:
+ 27   5CCB 00 0A                        db 0, 10
+ 28   5CCD 02 04                        dw End - .cmds
+ 29   5CCF              .cmds
+ 30   5CCF F9 C0 31 0E                  db B_RANDOMIZE, B_USR, "1", 14, 0, 0
+ 30   5CD3 00 00
+ 31   5CD5 D9 5C                        dw Start
+ 32   5CD7 00 3A                        db 0, ':'
+ 33   5CD9
+ 34   5CD9              Start:
+ 35   5CD9 31 FF FF                     ld sp, 65535
+ 36   5CDC AF                           xor a
+ 37   5CDD FD 77 0E                     ld (iy+14), a
+ 38   5CE0 D3 FE                        out (254), a
+ 39   5CE2 21 D0 60                     ld  hl, Image_end ; reverse unpacking
+ 40   5CE5 11 FF 5A                     ld  de, 0x4000+6912 - 1
+ 41   5CE8
+ 42   5CE8 CD 0D 5D                     call ue2_unpack
+ 43   5CEB
+ 44   5CEB              loader_base equ 65000
+ 45   5CEB                              ; relocate calls to ld_edge_*
+ 46   5CEB                              ;ld hl, ld_edge_1 - load + loader_base
+ 47   5CEB                              ;;; ld hl, rom_ld_edge_1
+ 48   5CEB                              ;;; ld (p1_0), hl
+ 49   5CEB                              ;;; ld (p1_1), hl
+ 50   5CEB                              ;;; ld (p1_2), hl
+ 51   5CEB                              ;;; ld (p1_3), hl
+ 52   5CEB                              ;;; ld hl, rom_ld_edge_2
+ 53   5CEB                              ;ld hl, ld_edge_2 - load + loader_base
+ 54   5CEB                              ;;; ld (p2_1), hl
+ 55   5CEB                              ;;; ld (p2_2), hl
+ 56   5CEB                              ;;; ld (p2_3), hl
+ 57   5CEB
+ 58   5CEB 21 35 5D                     ld hl, loader_start
+ 59   5CEE 11 E8 FD                     ld de, loader_base
+ 60   5CF1 01 AB 00                     ld bc, loader_end - loader_start
+ 61   5CF4 ED B0                        ldir
+ 62   5CF6
+ 63   5CF6
+ 64   5CF6                              ; di
+ 65   5CF6                              ; halt
+ 66   5CF6
+ 67   5CF6
+ 68   5CF6 DD 21 E0 5D                  ld ix, packed_code_start
+ 69   5CFA 11 42 45                     ld de, 17730
+ 70   5CFD 3E FF                        ld a, 255
+ 71   5CFF 37                           scf
+ 72   5D00
+ 73   5D00                              ;call 0556h
+ 74   5D00 CD E8 FD                     call loader_base
+ 75   5D03
+ 76   5D03 21 00 80                     ld hl, target_code_start
+ 77   5D06 E5                           push hl
+ 78   5D07 11 A7 D7                     ld de, target_code_start + 22440 - 1
+ 79   5D0A 21 21 A3                     ld hl, packed_code_start + 17730 - 1
+ 80   5D0D
+ 81   5D0D
+ 82   5D0D              ue2_unpack:
+ 83   5D0D 3E 80                        ld a, 128
+ 84   5D0F
+ 85   5D0F 01 01 00     MainLoop        ld bc,1
+ 86   5D12 CD 2F 5D                     call ReadBit                         ; Literal?
+ 87   5D15 38 10                        jr c,CopyBytes
+ 88   5D17
+ 89   5D17 CD 2F 5D     EliasGamma      call ReadBit
+ 90   5D1A CB 11                        rl c
+ 91   5D1C D8                           ret  c                               ; Option to include the end of stream marker.
+ 92   5D1D CD 2F 5D                     call ReadBit
+ 93   5D20 38 F5                        jr c,EliasGamma
+ 94   5D22
+ 95   5D22 E5                           push hl
+ 96   5D23 6E                           ld l,(hl)
+ 97   5D24 60                           ld h,b
+ 98   5D25 19                           add hl,de
+ 99   5D26 23                           inc hl
+100   5D27 ED B8        CopyBytes       lddr
+101   5D29 38 E4                        jr c,MainLoop
+102   5D2B E1                           pop hl
+103   5D2C 2B                           dec hl
+104   5D2D 18 E0                        jr MainLoop
+105   5D2F
+106   5D2F 87           ReadBit         add a,a
+107   5D30 C0                           ret nz
+108   5D31 7E                           ld a,(hl)
+109   5D32 2B                           dec hl
+110   5D33 17                           rla
+111   5D34 C9                           ret
+112   5D35
+113   5D35              loader_start:
+114   5D35                              include "src/fuckerding.inc"
+# file opened: ./src/fuckerding.inc
+  1+  5D35              load:
+  2+  5D35 14                           inc d
+  3+  5D36 08                           ex af, af
+  4+  5D37 15                           dec d
+  5+  5D38 F3                           di
+  6+  5D39 3E 0F                        ld a, 0x0f
+  7+  5D3B D3 FE                        out (254), a
+  8+  5D3D DB FE                        in a, (254)
+  9+  5D3F 1F                           rra
+ 10+  5D40 E6 20                        and 0x20
+ 11+  5D42 F6 02                        or 2
+ 12+  5D44 4F                           ld c, a
+ 13+  5D45 BF                           cp a
+ 14+  5D46
+ 15+  5D46 C0           ld_break        ret nz
+ 16+  5D47 CD E7 05     ld_start        call ld_edge_1
+ 17+  5D4A 30 FA                        jr nc, ld_break
+ 18+  5D4C
+ 19+  5D4C 21 15 04                     ld hl, 0x415
+ 20+  5D4F 10 FE        ld_wait         djnz ld_wait
+ 21+  5D51 2B                           dec hl
+ 22+  5D52 7C                           ld a, h
+ 23+  5D53 B5                           or l
+ 24+  5D54 20 F9                        jr nz, ld_wait
+ 25+  5D56
+ 26+  5D56 CD E3 05                     call ld_edge_2
+ 27+  5D59 30 EB                        jr nc, ld_break
+ 28+  5D5B
+ 29+  5D5B              ld_leader
+ 30+  5D5B 06 9C                        ld b, 0x9c
+ 31+  5D5D CD E3 05                     call ld_edge_2
+ 32+  5D60 30 E4                        jr nc, ld_break
+ 33+  5D62
+ 34+  5D62 3E C6                        ld a, 0xc6
+ 35+  5D64 B8                           cp b
+ 36+  5D65 30 E0                        jr nc, ld_start
+ 37+  5D67
+ 38+  5D67 24                           inc h
+ 39+  5D68 20 F1                        jr nz, ld_leader
+ 40+  5D6A
+ 41+  5D6A
+ 42+  5D6A 06 C9        ld_sync         ld b, 0xc9
+ 43+  5D6C CD E7 05                     call ld_edge_1
+ 44+  5D6F 30 D5                        jr nc, ld_break
+ 45+  5D71
+ 46+  5D71 78                           ld a, b
+ 47+  5D72 FE D4                        cp 0xd4
+ 48+  5D74 30 F4                        jr nc, ld_sync
+ 49+  5D76 CD E7 05                     call ld_edge_1
+ 50+  5D79 D0                           ret nc
+ 51+  5D7A
+ 52+  5D7A 79                           ld a, c
+ 53+  5D7B EE 03                        xor 3
+ 54+  5D7D 4F                           ld c, a
+ 55+  5D7E 26 00                        ld h, 0
+ 56+  5D80 06 B0                        ld b, 0xb0
+ 57+  5D82
+ 58+  5D82 18 1F                        jr ld_marker
+ 59+  5D84
+ 60+  5D84 08           ld_loop         ex af, af
+ 61+  5D85 20 07                        jr nz, ld_flag
+ 62+  5D87 30 0F                        jr nc, ld_verify
+ 63+  5D89 DD 75 00                     ld (ix), l
+ 64+  5D8C 18 0F                        jr ld_next
+ 65+  5D8E
+ 66+  5D8E CB 11        ld_flag         rl c
+ 67+  5D90 AD                           xor l
+ 68+  5D91 C0                           ret nz
+ 69+  5D92 79                           ld a, c
+ 70+  5D93 1F                           rra
+ 71+  5D94 4F                           ld c, a
+ 72+  5D95 13                           inc de
+ 73+  5D96 18 07                        jr ld_dec
+ 74+  5D98 DD 7E 00     ld_verify       ld a, (ix)
+ 75+  5D9B AD                           xor l
+ 76+  5D9C C0                           ret nz
+ 77+  5D9D
+ 78+  5D9D              ld_next
+ 79+  5D9D DD 23                        inc ix
+ 80+  5D9F 1B           ld_dec          dec de
+ 81+  5DA0 08                           ex af, af
+ 82+  5DA1
+ 83+  5DA1 06 B2                        ld b, 0xb2
+ 84+  5DA3 2E 01        ld_marker       ld l, 1
+ 85+  5DA5 CD E3 05     ld_8_bits       call ld_edge_2
+ 86+  5DA8 D0                           ret nc
+ 87+  5DA9 3E C5                        ld a, 0xc5
+ 88+  5DAB B8                           cp b
+ 89+  5DAC CB 15                        rl l
+ 90+  5DAE 06 B0                        ld b, 0xb0
+ 91+  5DB0 D2 A5 5D                     jp nc, ld_8_bits
+ 92+  5DB3
+ 93+  5DB3 7C                           ld a, h
+ 94+  5DB4 AD                           xor l
+ 95+  5DB5 67                           ld h, a
+ 96+  5DB6
+ 97+  5DB6 7A                           ld a, d
+ 98+  5DB7 B3                           or e
+ 99+  5DB8 20 CA                        jr nz, ld_loop
+100+  5DBA
+101+  5DBA 7C                           ld a, h
+102+  5DBB FE 01                        cp 1
+103+  5DBD C9                           ret
+104+  5DBE
+105+  5DBE              ld_edge_2 equ 0x5e3
+106+  5DBE              ld_edge_1 equ 0x5e7
+107+  5DBE
+108+  5DBE CD E7 05     xld_edge_2       call ld_edge_1
+109+  5DC1 D0                           ret nc
+110+  5DC2 3E 16        xld_edge_1       ld a, 0x16
+111+  5DC4 3D           ld_delay        dec a           ; 358 tstates
+112+  5DC5 20 FD                        jr nz, ld_delay
+113+  5DC7 A7                           and a
+114+  5DC8
+115+  5DC8 04           ld_sample       inc b
+116+  5DC9 C8                           ret z
+117+  5DCA
+118+  5DCA 3E 7F                        ld a, 0x7f
+119+  5DCC DB FE                        in a, (0xfe)
+120+  5DCE 1F                           rra
+121+  5DCF D0                           ret nc
+122+  5DD0
+123+  5DD0 A9                           xor c
+124+  5DD1 E6 20                        and 0x20
+125+  5DD3 28 F3                        jr z, ld_sample
+126+  5DD5
+127+  5DD5 79                           ld a, c
+128+  5DD6 2F                           cpl
+129+  5DD7 4F                           ld c, a
+130+  5DD8 E6 07                        and 7
+131+  5DDA F6 08                        or 8
+132+  5DDC D3 FE                        out (0xfe), a
+133+  5DDE 37                           scf
+134+  5DDF C9                           ret
+135+  5DE0
+# file closed: ./src/fuckerding.inc
+115   5DE0              loader_end equ $
+116   5DE0
+117   5DE0              packed_code_start:
+118   5DE0                              incbin "build/loading.pck"
+119   60D1              Image_end equ $-1
+120   60D1
+121   60D1              End equ $
+122   60D1
+123   60D1                  display "Saving moo.tap"
+124   60D1                  emptytap "moo.tap"
+125   60D1                  savetap  "moo.tap", basic, "MoonRn", basic_start, End - basic_start, 10
+126   60D1                  tapout "moo.tap"
+127   60D1                  incbin "build/code.pck"
+128   A613                  tapend
+129   A613
 # file closed: src/loader.asm
