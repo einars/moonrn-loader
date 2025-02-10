@@ -221,6 +221,15 @@ lines:
                   sj.add_word(line3 + 15 + i)
                 end
                 endlua
+                dw 0x50c8
+                dw 0x50c9
+                dw 0x50ca
+                dw 0x52c9
+
+                dw 0x50b0
+                dw 0x50b1
+                dw 0x50b2
+                dw 0x52b1
                 dw 0
                 dw 0
 
