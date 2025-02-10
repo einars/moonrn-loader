@@ -147,7 +147,7 @@ do_effect       ; + 16 from above
                 ld d, (hl)      ; 7
                 inc hl          ; 6
                 ex de, hl       ; 4
-                rrc (hl)         ; 15 ; contended memory thou
+                rlc (hl)         ; 15 ; contended memory thou
                 ex de, hl       ; 4
                 ; 53
 
@@ -207,21 +207,18 @@ ld_sample       inc b
 lines_reloc equ $ - load + loader_base
 lines:
                 lua allpass
-                local line1 = 0x49e0
+                local line1 = 0x41e0;
                 local line2 = line1 + 512
                 local line3 = line2 + 512
 
-                sj.add_word(line2 + 16)
-                sj.add_word(line3 + 16)
-
                 for i = 1, 15, 1
                 do
-                  sj.add_word(line1 + 16 - i)
-                  sj.add_word(line1 + 16 + i)
-                  sj.add_word(line2 + 16 - i)
-                  sj.add_word(line2 + 16 + i)
-                  sj.add_word(line3 + 16 - i)
-                  sj.add_word(line3 + 16 + i)
+                  sj.add_word(line1 + 15 - i)
+                  sj.add_word(line1 + 15 + i)
+                  sj.add_word(line2 + 15 - i)
+                  sj.add_word(line2 + 15 + i)
+                  sj.add_word(line3 + 15 - i)
+                  sj.add_word(line3 + 15 + i)
                 end
                 endlua
                 dw 0
