@@ -42,11 +42,10 @@ Start:
                 call ue2_unpack
 
 loader_base equ 65000
-                ; relocate calls to ld_edge_*
-                ld hl, ld_edge_1 - load + loader_base
-                ld (rel1), hl
+                ; relocate call to ld_edge
 
-                ld hl, ld_edge_2 - load + loader_base
+                ld hl, ld_edge - load + loader_base
+                ld (rel1), hl
                 ld (rel2), hl
 
                 ld hl, loader_start

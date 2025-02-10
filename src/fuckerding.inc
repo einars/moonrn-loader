@@ -3,8 +3,8 @@ effect_delay equ 6
 load:           
                 exx
                 ld hl, lines_reloc
-                ld b, effect_delay
                 ld c, effect_delay
+                ld b, c
                 exx
 
                 inc d
@@ -64,6 +64,9 @@ ld_sync         ld b, 0xc9
 
                 jr ld_marker
 
+
+
+                ; the loading itself
 ld_loop         ex af, af
                 jr nz, ld_flag
 
@@ -84,8 +87,11 @@ ld_dec          dec de
                 ld b, 0xb2
 ld_marker       ld l, 1
 ld_8_bits       
-rel2+*          call ld_edge_2
-                ret nc
+
+rel1+*          call ld_edge
+                ;ret nc
+rel2+*          call ld_edge
+                ;ret nc
                 ld a, 0xc5
                 cp b
                 rl l
@@ -101,11 +107,8 @@ rel2+*          call ld_edge_2
 rom_ld_edge_2 equ 0x5e3
 rom_ld_edge_1 equ 0x5e7
 
-ld_edge_2
-rel1+*:         call ld_edge_1
-                ret nc
 ;breakpoint equ $-load + loader_base
-ld_edge_1       
+ld_edge       
                 exx             
                 nop
 
