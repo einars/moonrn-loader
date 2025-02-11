@@ -1,4 +1,4 @@
-effect_delay equ 6
+effect_delay equ 2
 
 load:           
                 exx
@@ -151,15 +151,6 @@ do_effect       ; + 16 from above
                 ex de, hl       ; 4
                 ; 53
 
-                ld e, (hl)      ; 7
-                inc hl          ; 6
-                ld d, (hl)      ; 7
-                inc hl          ; 6
-                ex de, hl       ; 4
-                rlc (hl)         ; 15 ; contended memory thou
-                ex de, hl       ; 4
-                ; 53
-
                 xor a
                 or d            ; 4
                 ; -- 126
@@ -253,15 +244,17 @@ lines:
                 dw 0x48a3
                 dw 0x48a4
                 dw 0x48a5
+                dw 0x4aa4
 
                 dw 0x48c8
                 dw 0x48c9
                 dw 0x48ca
+                dw 0x4ac9
 
                 dw 0x5005
                 dw 0x5006
                 dw 0x5007
+                dw 0x5206
 
-                dw 0
                 dw 0
                 dw 0
