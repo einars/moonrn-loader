@@ -26,7 +26,7 @@
  25   5CCB
  26   5CCB              line10:
  27   5CCB 00 0A                        db 0, 10
- 28   5CCD DE 04                        dw End - .cmds
+ 28   5CCD D1 08                        dw End - .cmds
  29   5CCF              .cmds
  30   5CCF F9 C0 31 0E                  db B_RANDOMIZE, B_USR, "1", 14, 0, 0
  30   5CD3 00 00
@@ -38,7 +38,7 @@
  36   5CDC AF                           xor a
  37   5CDD FD 77 0E                     ld (iy+14), a
  38   5CE0 D3 FE                        out (254), a
- 39   5CE2 21 AC 61                     ld  hl, Image_end ; reverse unpacking
+ 39   5CE2 21 9F 65                     ld  hl, Image_end ; reverse unpacking
  40   5CE5 11 FF 5A                     ld  de, 0x4000+6912 - 1
  41   5CE8
  42   5CE8 CD 16 5D                     call ue2_unpack
@@ -52,7 +52,7 @@
  50   5CF4
  51   5CF4 21 3E 5D                     ld hl, loader_start
  52   5CF7 11 E8 FD                     ld de, loader_base
- 53   5CFA 01 7E 01                     ld bc, loader_end - loader_start
+ 53   5CFA 01 B2 01                     ld bc, loader_end - loader_start
  54   5CFD ED B0                        ldir
  55   5CFF
  56   5CFF
@@ -60,8 +60,8 @@
  58   5CFF                              ; halt
  59   5CFF
  60   5CFF
- 61   5CFF DD 21 BC 5E                  ld ix, packed_code_start
- 62   5D03 11 42 45                     ld de, 17730
+ 61   5CFF DD 21 F0 5E                  ld ix, packed_code_start
+ 62   5D03 11 AF 45                     ld de, 17839
  63   5D06 3E FF                        ld a, 255
  64   5D08 37                           scf
  65   5D09
@@ -70,8 +70,8 @@
  68   5D0C
  69   5D0C 21 00 80                     ld hl, target_code_start
  70   5D0F E5                           push hl
- 71   5D10 11 A7 D7                     ld de, target_code_start + 22440 - 1
- 72   5D13 21 FD A3                     ld hl, packed_code_start + 17730 - 1
+ 71   5D10 11 19 D8                     ld de, target_code_start + 22554 - 1
+ 72   5D13 21 9E A4                     ld hl, packed_code_start + 17839 - 1
  73   5D16
  74   5D16
  75   5D16              ue2_unpack:
@@ -108,12 +108,12 @@
 106   5D3E              loader_start:
 107   5D3E                              include "src/fuckerding.inc"
 # file opened: ./src/fuckerding.inc
-  1+  5D3E              effect_delay equ 6
+  1+  5D3E              effect_delay equ 2
   2+  5D3E
   3+  5D3E              load:
   4+  5D3E D9                           exx
   5+  5D3F 21 AA FE                     ld hl, lines_reloc
-  6+  5D42 0E 06                        ld c, effect_delay
+  6+  5D42 0E 02                        ld c, effect_delay
   7+  5D44 41                           ld b, c
   8+  5D45 D9                           exx
   9+  5D46
@@ -257,147 +257,176 @@
 147+  5DCE 56                           ld d, (hl)      ; 7
 148+  5DCF 23                           inc hl          ; 6
 149+  5DD0 EB                           ex de, hl       ; 4
-150+  5DD1 CB 0E                        rrc (hl)         ; 15 ; contended memory thou
+150+  5DD1 CB 06                        rlc (hl)         ; 15 ; contended memory thou
 151+  5DD3 EB                           ex de, hl       ; 4
 152+  5DD4                              ; 53
 153+  5DD4
-154+  5DD4
-155+  5DD4 AF                           xor a
-156+  5DD5 B2                           or d            ; 4
-157+  5DD6                              ; -- 126
-158+  5DD6
-159+  5DD6                              ; adjusted: 12+7+10 = 29 either way
-160+  5DD6 20 03                        jr nz, ok    ; 12/7
-161+  5DD8 21 AA FE                     ld hl, lines_reloc ; 10
-162+  5DDB 28 03        ok:             jr z, adj    ; 12/7 symmetric branch timing adjustment
-163+  5DDD 11 AA FE                     ld de, lines_reloc ; 10
-164+  5DE0              adj:
-165+  5DE0                              ; -- + 29 = 155
-166+  5DE0 00                           nop
-167+  5DE1                              ; 159, ~16*10
-168+  5DE1
-169+  5DE1 00                           nop
-170+  5DE2 D9                           exx  ; exx nop nop exx = 16
-171+  5DE3
-172+  5DE3 3E 0B                        ld a, 0x16 - 1 - 10
-173+  5DE5
-174+  5DE5 3D           spin:           dec a           ; ~358 T
-175+  5DE6 20 FD                        jr nz, spin     ; 1 dec-loop = 16T
-176+  5DE8 A7                           and a
-177+  5DE9
-178+  5DE9 04           ld_sample       inc b
-179+  5DEA C8                           ret z
-180+  5DEB
-181+  5DEB 3E 7F                        ld a, 0x7f
-182+  5DED DB FE                        in a, (0xfe)
-183+  5DEF 1F                           rra
-184+  5DF0 D0                           ret nc
-185+  5DF1
-186+  5DF1 A9                           xor c
-187+  5DF2 E6 20                        and 0x20
-188+  5DF4 28 F3                        jr z, ld_sample
-189+  5DF6
-190+  5DF6 79                           ld a, c
-191+  5DF7 2F                           cpl
-192+  5DF8 4F                           ld c, a
-193+  5DF9
-194+  5DF9                              ;and 7 ; 4
-195+  5DF9                              ;or 8 ; 4
-196+  5DF9                              ;out (0xfe), a ; 11
-197+  5DF9
-198+  5DF9 00                           nop
-199+  5DFA 00                           nop
-200+  5DFB 00                           nop
-201+  5DFC 00                           nop
-202+  5DFD 00                           nop
-203+  5DFE
-204+  5DFE 37                           scf
-205+  5DFF C9                           ret
-206+  5E00
-207+  5E00              lines_reloc equ $ - load + loader_base
-208+  5E00              lines:
-209+  5E00                              lua allpass
-210+  5E00 ~                            local line1 = 0x49e0
-211+  5E00 ~                            local line2 = line1 + 512
-212+  5E00 ~                            local line3 = line2 + 512
-213+  5E00 ~
-214+  5E00 ~                            sj.add_word(line2 + 16)
-215+  5E00 ~                            sj.add_word(line3 + 16)
-216+  5E00 ~
-217+  5E00 ~                            for i = 1, 15, 1
-218+  5E00 ~                            do
-219+  5E00 ~                              sj.add_word(line1 + 16 - i)
-220+  5E00 ~                              sj.add_word(line1 + 16 + i)
-221+  5E00 ~                              sj.add_word(line2 + 16 - i)
-222+  5E00 ~                              sj.add_word(line2 + 16 + i)
-223+  5E00 ~                              sj.add_word(line3 + 16 - i)
-224+  5E00 ~                              sj.add_word(line3 + 16 + i)
-225+  5E00 ~                            end
-226+  5E00 F0 4B F0 4D                  endlua
-226+  5E04 EF 49 F1 49
-226+  5E08 EF 4B F1 4B
-226+  5E0C EF 4D F1 4D
-226+  5E10 EE 49 F2 49
-226+  5E14 EE 4B F2 4B
-226+  5E18 EE 4D F2 4D
-226+  5E1C ED 49 F3 49
-226+  5E20 ED 4B F3 4B
-226+  5E24 ED 4D F3 4D
-226+  5E28 EC 49 F4 49
-226+  5E2C EC 4B F4 4B
-226+  5E30 EC 4D F4 4D
-226+  5E34 EB 49 F5 49
-226+  5E38 EB 4B F5 4B
-226+  5E3C EB 4D F5 4D
-226+  5E40 EA 49 F6 49
-226+  5E44 EA 4B F6 4B
-226+  5E48 EA 4D F6 4D
-226+  5E4C E9 49 F7 49
-226+  5E50 E9 4B F7 4B
-226+  5E54 E9 4D F7 4D
-226+  5E58 E8 49 F8 49
-226+  5E5C E8 4B F8 4B
-226+  5E60 E8 4D F8 4D
-226+  5E64 E7 49 F9 49
-226+  5E68 E7 4B F9 4B
-226+  5E6C E7 4D F9 4D
-226+  5E70 E6 49 FA 49
-226+  5E74 E6 4B FA 4B
-226+  5E78 E6 4D FA 4D
-226+  5E7C E5 49 FB 49
-226+  5E80 E5 4B FB 4B
-226+  5E84 E5 4D FB 4D
-226+  5E88 E4 49 FC 49
-226+  5E8C E4 4B FC 4B
-226+  5E90 E4 4D FC 4D
-226+  5E94 E3 49 FD 49
-226+  5E98 E3 4B FD 4B
-226+  5E9C E3 4D FD 4D
-226+  5EA0 E2 49 FE 49
-226+  5EA4 E2 4B FE 4B
-226+  5EA8 E2 4D FE 4D
-226+  5EAC E1 49 FF 49
-226+  5EB0 E1 4B FF 4B
-226+  5EB4 E1 4D FF 4D
-227+  5EB8 00 00                        dw 0
-228+  5EBA 00 00                        dw 0
-229+  5EBC
-230+  5EBC
-231+  5EBC
+154+  5DD4 AF                           xor a
+155+  5DD5 B2                           or d            ; 4
+156+  5DD6                              ; -- 126
+157+  5DD6
+158+  5DD6                              ; adjusted: 12+7+10 = 29 either way
+159+  5DD6 20 03                        jr nz, ok    ; 12/7
+160+  5DD8 21 AA FE                     ld hl, lines_reloc ; 10
+161+  5DDB 28 03        ok:             jr z, adj    ; 12/7 symmetric branch timing adjustment
+162+  5DDD 11 AA FE                     ld de, lines_reloc ; 10
+163+  5DE0              adj:
+164+  5DE0                              ; -- + 29 = 155
+165+  5DE0 00                           nop
+166+  5DE1                              ; 159, ~16*10
+167+  5DE1
+168+  5DE1 00                           nop
+169+  5DE2 D9                           exx  ; exx nop nop exx = 16
+170+  5DE3
+171+  5DE3 3E 0B                        ld a, 0x16 - 1 - 10
+172+  5DE5
+173+  5DE5 3D           spin:           dec a           ; ~358 T
+174+  5DE6 20 FD                        jr nz, spin     ; 1 dec-loop = 16T
+175+  5DE8 A7                           and a
+176+  5DE9
+177+  5DE9 04           ld_sample       inc b
+178+  5DEA C8                           ret z
+179+  5DEB
+180+  5DEB 3E 7F                        ld a, 0x7f
+181+  5DED DB FE                        in a, (0xfe)
+182+  5DEF 1F                           rra
+183+  5DF0 D0                           ret nc
+184+  5DF1
+185+  5DF1 A9                           xor c
+186+  5DF2 E6 20                        and 0x20
+187+  5DF4 28 F3                        jr z, ld_sample
+188+  5DF6
+189+  5DF6 79                           ld a, c
+190+  5DF7 2F                           cpl
+191+  5DF8 4F                           ld c, a
+192+  5DF9
+193+  5DF9                              ;and 7 ; 4
+194+  5DF9                              ;or 8 ; 4
+195+  5DF9                              ;out (0xfe), a ; 11
+196+  5DF9
+197+  5DF9 00                           nop
+198+  5DFA 00                           nop
+199+  5DFB 00                           nop
+200+  5DFC 00                           nop
+201+  5DFD 00                           nop
+202+  5DFE
+203+  5DFE 37                           scf
+204+  5DFF C9                           ret
+205+  5E00
+206+  5E00              lines_reloc equ $ - load + loader_base
+207+  5E00              lines:
+208+  5E00                              lua allpass
+209+  5E00 ~                            local line1 = 0x41e0;
+210+  5E00 ~                            local line2 = line1 + 512
+211+  5E00 ~                            local line3 = line2 + 512
+212+  5E00 ~
+213+  5E00 ~                            for i = 1, 15, 1
+214+  5E00 ~                            do
+215+  5E00 ~                              sj.add_word(line1 + 15 - i)
+216+  5E00 ~                              sj.add_word(line1 + 15 + i)
+217+  5E00 ~                              sj.add_word(line2 + 15 - i)
+218+  5E00 ~                              sj.add_word(line2 + 15 + i)
+219+  5E00 ~                              sj.add_word(line3 + 15 - i)
+220+  5E00 ~                              sj.add_word(line3 + 15 + i)
+221+  5E00 ~                            end
+222+  5E00 EE 41 F0 41                  endlua
+222+  5E04 EE 43 F0 43
+222+  5E08 EE 45 F0 45
+222+  5E0C ED 41 F1 41
+222+  5E10 ED 43 F1 43
+222+  5E14 ED 45 F1 45
+222+  5E18 EC 41 F2 41
+222+  5E1C EC 43 F2 43
+222+  5E20 EC 45 F2 45
+222+  5E24 EB 41 F3 41
+222+  5E28 EB 43 F3 43
+222+  5E2C EB 45 F3 45
+222+  5E30 EA 41 F4 41
+222+  5E34 EA 43 F4 43
+222+  5E38 EA 45 F4 45
+222+  5E3C E9 41 F5 41
+222+  5E40 E9 43 F5 43
+222+  5E44 E9 45 F5 45
+222+  5E48 E8 41 F6 41
+222+  5E4C E8 43 F6 43
+222+  5E50 E8 45 F6 45
+222+  5E54 E7 41 F7 41
+222+  5E58 E7 43 F7 43
+222+  5E5C E7 45 F7 45
+222+  5E60 E6 41 F8 41
+222+  5E64 E6 43 F8 43
+222+  5E68 E6 45 F8 45
+222+  5E6C E5 41 F9 41
+222+  5E70 E5 43 F9 43
+222+  5E74 E5 45 F9 45
+222+  5E78 E4 41 FA 41
+222+  5E7C E4 43 FA 43
+222+  5E80 E4 45 FA 45
+222+  5E84 E3 41 FB 41
+222+  5E88 E3 43 FB 43
+222+  5E8C E3 45 FB 45
+222+  5E90 E2 41 FC 41
+222+  5E94 E2 43 FC 43
+222+  5E98 E2 45 FC 45
+222+  5E9C E1 41 FD 41
+222+  5EA0 E1 43 FD 43
+222+  5EA4 E1 45 FD 45
+222+  5EA8 E0 41 FE 41
+222+  5EAC E0 43 FE 43
+222+  5EB0 E0 45 FE 45
+223+  5EB4
+224+  5EB4 CA 50                        dw 0x50ca
+225+  5EB6 CB 50                        dw 0x50cb
+226+  5EB8 CC 50                        dw 0x50cc
+227+  5EBA CB 52                        dw 0x52cb
+228+  5EBC
+229+  5EBC B2 50                        dw 0x50b2
+230+  5EBE B3 50                        dw 0x50b3
+231+  5EC0 B4 50                        dw 0x50b4
+232+  5EC2 B3 52                        dw 0x52b3
+233+  5EC4
+234+  5EC4 9A 50                        dw 0x509a
+235+  5EC6 9B 50                        dw 0x509b
+236+  5EC8 9C 50                        dw 0x509c
+237+  5ECA 9B 52                        dw 0x529b
+238+  5ECC
+239+  5ECC E2 50                        dw 0x50e2
+240+  5ECE E3 50                        dw 0x50e3
+241+  5ED0 E4 50                        dw 0x50e4
+242+  5ED2 E3 52                        dw 0x52e3
+243+  5ED4
+244+  5ED4 A3 48                        dw 0x48a3
+245+  5ED6 A4 48                        dw 0x48a4
+246+  5ED8 A5 48                        dw 0x48a5
+247+  5EDA A4 4A                        dw 0x4aa4
+248+  5EDC
+249+  5EDC C8 48                        dw 0x48c8
+250+  5EDE C9 48                        dw 0x48c9
+251+  5EE0 CA 48                        dw 0x48ca
+252+  5EE2 C9 4A                        dw 0x4ac9
+253+  5EE4
+254+  5EE4 05 50                        dw 0x5005
+255+  5EE6 06 50                        dw 0x5006
+256+  5EE8 07 50                        dw 0x5007
+257+  5EEA 06 52                        dw 0x5206
+258+  5EEC
+259+  5EEC 00 00                        dw 0
+260+  5EEE 00 00                        dw 0
+261+  5EF0
 # file closed: ./src/fuckerding.inc
-108   5EBC              loader_end equ $
-109   5EBC
-110   5EBC              packed_code_start:
-111   5EBC                              incbin "build/loading.pck"
-112   61AD              Image_end equ $-1
-113   61AD
-114   61AD              End equ $
-115   61AD
-116   61AD                  display "Saving moo.tap"
-117   61AD                  emptytap "moo.tap"
-118   61AD                  savetap  "moo.tap", basic, "MoonRn", basic_start, End - basic_start, 10
-119   61AD                  tapout "moo.tap"
-120   61AD                  incbin "build/code.pck"
-121   A6EF                  tapend
-122   A6EF
+108   5EF0              loader_end equ $
+109   5EF0
+110   5EF0              packed_code_start:
+111   5EF0                              incbin "build/loading.pck"
+112   65A0              Image_end equ $-1
+113   65A0
+114   65A0              End equ $
+115   65A0
+116   65A0                  display "Saving moo.tap"
+117   65A0                  emptytap "moo.tap"
+118   65A0                  savetap  "moo.tap", basic, "MoonRn", basic_start, End - basic_start, 10
+119   65A0                  tapout "moo.tap"
+120   65A0                  incbin "build/code.pck"
+121   AB4F                  tapend
+122   AB4F
 # file closed: src/loader.asm
