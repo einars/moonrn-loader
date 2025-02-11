@@ -151,6 +151,14 @@ do_effect       ; + 16 from above
                 ex de, hl       ; 4
                 ; 53
 
+                ld e, (hl)      ; 7
+                inc hl          ; 6
+                ld d, (hl)      ; 7
+                inc hl          ; 6
+                ex de, hl       ; 4
+                rlc (hl)         ; 15 ; contended memory thou
+                ex de, hl       ; 4
+                ; 53
 
                 xor a
                 or d            ; 4
@@ -221,6 +229,7 @@ lines:
                   sj.add_word(line3 + 15 + i)
                 end
                 endlua
+
                 dw 0x50ca
                 dw 0x50cb
                 dw 0x50cc
@@ -241,8 +250,18 @@ lines:
                 dw 0x50e4
                 dw 0x52e3
 
+                dw 0x48a3
+                dw 0x48a4
+                dw 0x48a5
+
+                dw 0x48c8
+                dw 0x48c9
+                dw 0x48ca
+
+                dw 0x5005
+                dw 0x5006
+                dw 0x5007
+
                 dw 0
                 dw 0
-
-
-
+                dw 0
