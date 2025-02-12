@@ -13,11 +13,11 @@ target_code_start equ 32768
                 lua
                 local f
 
-                f = io.open("./pristine/moonrn.bin")
+                f = io.open("build/moonrn.bin")
                 sj.insert_define("target_code_len", f:seek("end"))
                 f:close()
 
-                f = io.open("./build/code.pck")
+                f = io.open("build/code.pck")
                 sj.insert_define("packed_code_len", f:seek("end"))
                 f:close()
 
@@ -113,9 +113,9 @@ Image_end equ $-1
 
 End equ $
 
-    display "Saving moo.tap"
-    emptytap "moo.tap"
-    savetap  "moo.tap", basic, "MoonRn", basic_start, End - basic_start, 10
-    tapout "moo.tap"
+    display "Saving moonrn.tap"
+    emptytap "moonrn.tap"
+    savetap  "moonrn.tap", basic, "MoonRN", basic_start, End - basic_start, 10
+    tapout "moonrn.tap"
     incbin "build/code.pck"
     tapend
